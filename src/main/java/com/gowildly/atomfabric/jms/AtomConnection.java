@@ -3,7 +3,6 @@ package com.gowildly.atomfabric.jms;
 import com.gowildly.atomfabric.sockets.AtomServerEndpoint;
 import org.apache.log4j.Logger;
 import org.glassfish.tyrus.server.Server;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import javax.jms.*;
 import javax.websocket.DeploymentException;
@@ -45,12 +44,12 @@ public class AtomConnection implements Connection {
 
     public ConnectionConsumer createConnectionConsumer(Destination destination, String messageSelector, ServerSessionPool sessionPool, int maxMessages) throws JMSException {
         logger.info("AtomConnection.createConnectionConsumer(" + destination + ", " + messageSelector + ", " + sessionPool + ", " + maxMessages + ")");
-        throw new NotImplementedException();
+        throw new JMSException("Connection.createConnectionConsumer() not implemented.");
     }
 
     public ConnectionConsumer createDurableConnectionConsumer(Topic topic, String subscriptionName, String messageSelector, ServerSessionPool sessionPool, int maxMessages) throws JMSException {
         logger.info("AtomConnection.createDurableConnectionConsumer(" + topic + ", " + subscriptionName + ", " + messageSelector + ", " + sessionPool + ", " + maxMessages + ")");
-        throw new NotImplementedException();
+        throw new JMSException("Connection.createDurableConnectionConsumer() not implemented.");
     }
 
     public String getClientID() throws JMSException {

@@ -1,7 +1,6 @@
 package com.gowildly.atomfabric.jndi;
 
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -50,22 +49,6 @@ public class ReadOnlyContext implements Context, Serializable {
     private String nameInNamespace = "";
     public static final String SEPARATOR = "/";
 
-    public ReadOnlyContext() {
-        environment = new Hashtable();
-        bindings = new HashMap();
-        treeBindings = new HashMap();
-    }
-
-    public ReadOnlyContext(Hashtable env) {
-        if (env == null) {
-            this.environment = new Hashtable();
-        } else {
-            this.environment = new Hashtable(env);
-        }
-        this.bindings = Collections.EMPTY_MAP;
-        this.treeBindings = Collections.EMPTY_MAP;
-    }
-
     public ReadOnlyContext(Hashtable environment, Map bindings) {
         if (environment == null) {
             this.environment = new Hashtable();
@@ -77,11 +60,6 @@ public class ReadOnlyContext implements Context, Serializable {
         frozen = true;
     }
 
-    public ReadOnlyContext(Hashtable environment, Map bindings, String nameInNamespace) {
-        this(environment, bindings);
-        this.nameInNamespace = nameInNamespace;
-    }
-
     protected ReadOnlyContext(ReadOnlyContext clone, Hashtable env) {
         this.bindings = clone.bindings;
         this.treeBindings = clone.treeBindings;
@@ -91,69 +69,6 @@ public class ReadOnlyContext implements Context, Serializable {
     protected ReadOnlyContext(ReadOnlyContext clone, Hashtable env, String nameInNamespace) {
         this(clone, env);
         this.nameInNamespace = nameInNamespace;
-    }
-
-    public void freeze() {
-        frozen = true;
-    }
-
-    boolean isFrozen() {
-        return frozen;
-    }
-
-    /**
-     * internalBind is intended for use only during setup or possibly by suitably synchronized superclasses.
-     * It binds every possible lookup into a map in each context.  To do this, each context
-     * strips off one name segment and if necessary creates a new context for it. Then it asks that context
-     * to bind the remaining name.  It returns a map containing all the bindings from the next context, plus
-     * the context it just created (if it in fact created it). (the names are suitably extended by the segment
-     * originally lopped off).
-     *
-     * @param name
-     * @param value
-     * @return
-     * @throws javax.naming.NamingException
-     */
-    protected Map internalBind(String name, Object value) throws NamingException {
-        assert (name != null) && (name.length() > 0);
-        assert !frozen;
-        Map newBindings = new HashMap();
-        int pos = name.indexOf('/');
-        if (pos == -1) {
-            if (treeBindings.put(name, value) != null) {
-                throw new NamingException("Something already bound at " + name);
-            }
-            bindings.put(name, value);
-            newBindings.put(name, value);
-        } else {
-            String segment = name.substring(0, pos);
-            assert segment != null;
-            assert !segment.equals("");
-            Object o = treeBindings.get(segment);
-            if (o == null) {
-                o = newContext();
-                treeBindings.put(segment, o);
-                bindings.put(segment, o);
-                newBindings.put(segment, o);
-            } else if (!(o instanceof ReadOnlyContext)) {
-                throw new NamingException("Something already bound where a subcontext should go");
-            }
-            ReadOnlyContext readOnlyContext = (ReadOnlyContext) o;
-            String remainder = name.substring(pos + 1);
-            Map subBindings = readOnlyContext.internalBind(remainder, value);
-            for (Iterator iterator = subBindings.entrySet().iterator(); iterator.hasNext(); ) {
-                Map.Entry entry = (Map.Entry) iterator.next();
-                String subName = segment + "/" + (String) entry.getKey();
-                Object bound = entry.getValue();
-                treeBindings.put(subName, bound);
-                newBindings.put(subName, bound);
-            }
-        }
-        return newBindings;
-    }
-
-    protected ReadOnlyContext newContext() {
-        return new ReadOnlyContext();
     }
 
     public Object addToEnvironment(String propName, Object propVal) throws NamingException {

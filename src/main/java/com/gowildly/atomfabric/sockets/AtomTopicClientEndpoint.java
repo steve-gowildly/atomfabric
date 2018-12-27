@@ -1,14 +1,16 @@
 package com.gowildly.atomfabric.sockets;
 
 import com.gowildly.atomfabric.jms.AtomTextMessage;
-import com.gowildly.atomfabric.jms.AtomTopicSubscriber;
+import com.gowildly.atomfabric.jms.AtomTopicPublisherAndSubscriber;
 
 import javax.jms.JMSException;
 import javax.jms.Topic;
 import javax.websocket.*;
 
 @ClientEndpoint
-public class AtomTopicClientEndpoint extends AtomTopicSubscriber {
+public class AtomTopicClientEndpoint extends AtomTopicPublisherAndSubscriber {
+
+    Session userSession = null;
 
     public AtomTopicClientEndpoint(Topic topic, String messageSelector, boolean noLocal) {
         super(topic, messageSelector, noLocal);
@@ -17,11 +19,13 @@ public class AtomTopicClientEndpoint extends AtomTopicSubscriber {
     @OnOpen
     public void onOpen(Session userSession) {
         logger.info("AtomClientEndpoint.onOpen(" + userSession + ")");
+        this.userSession = userSession;
     }
 
     @OnClose
     public void onClose(Session userSession, CloseReason reason) {
         logger.info("AtomClientEndpoint.onClose(" + userSession + ", " + reason + ")");
+        this.userSession = null;
 
         try {
             this.close();
@@ -38,5 +42,10 @@ public class AtomTopicClientEndpoint extends AtomTopicSubscriber {
         } catch (Exception e) {
             logger.error(e.getMessage());
         }
+    }
+
+    public void sendMessage(String message) {
+        logger.info("AtomClientEndpoint.sendMessage(" + message + ")");
+        this.userSession.getAsyncRemote().sendText(message);
     }
 }

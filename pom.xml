@@ -6,7 +6,7 @@
 
     <groupId>gowildly</groupId>
     <artifactId>atomfabric</artifactId>
-    <version>1.13-SNAPSHOT</version>
+    <version>1.19-SNAPSHOT</version>
 
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
